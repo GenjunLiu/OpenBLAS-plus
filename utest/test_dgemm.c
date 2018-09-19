@@ -1,0 +1,410 @@
+/*****************************************************************************
+Copyright (c) 2011-2014, The OpenBLAS Project
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+   1. Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in
+      the documentation and/or other materials provided with the
+      distribution.
+   3. Neither the name of the OpenBLAS project nor the names of
+      its contributors may be used to endorse or promote products
+      derived from this software without specific prior written
+      permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+**********************************************************************************/
+
+#include "cblas.h"
+#include "openblas_utest.h"
+
+#define ALIGN_PTR(PTR, ALIGN, type)  (type*)(((intptr_t)PTR + ALIGN) & (~ALIGN))
+
+/*
+	CblasColMajor
+	A: K x M
+	B: N x K
+	C: B * A : N x M
+*/
+CTEST(dgemm, dgemm_inc_blasfunc)
+{
+	double alpha = 1.23f, beta = 0.3453f;
+	blasint M = 211, Max_N = 512, K = 178;
+
+	double *AMeta = (double *)malloc(M*K*sizeof(double)), *BMeta = (double *)malloc(Max_N*K*sizeof(double));
+	double *CMeta_SGEMM = (double*)malloc(M*Max_N*sizeof(double)), *CMeta_PRE = (double*)malloc(M*Max_N*sizeof(double));
+
+	int i, j, k;
+	blasint n;
+	for (i=0; i<M*K; i++) 	   AMeta[i] = (i - M*K/2.0f)/(M*K);
+	for (i=0; i<Max_N*K; i++)  BMeta[i] = (i - Max_N*K/2.0f)/(Max_N*K);
+
+
+	for (i=0; i<4; i++) {
+		char transA = (i&1) ? 'T' : 'N', transB = (i&2) ? 'T' : 'N';
+
+		for (n=4; n<=Max_N; n = (blasint)(n*1.5 + 1)) {
+			--n;
+			blasint lda = transA == 'N' ? M : K, ldb = transB == 'N' ? K : n, ldc = M;
+			for (i=0; i<M; i++) {
+				for (j=0; j<n; j++) {
+					CMeta_PRE[j*ldc + i] = CMeta_SGEMM[j*ldc + i] = (i*j - M*n/2.0f)/(M*n);
+				}
+			}
+			//OpenBLAS baseline
+			BLASFUNC(dgemm)(&transA, &transB, (blasint*)&M, (blasint*)&n, (blasint*)&K, &alpha, AMeta, &lda, BMeta, &ldb, &beta, CMeta_SGEMM, &ldc);
+
+			for (i=0; i<M; i++) {
+				for (j=0; j<n; j++) {
+					double cc = 0.0f;
+					if (transA == 'N' && transB == 'N') {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[j*ldb + k];
+					} else if (transA == 'N' && transB == 'T') {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[k*ldb + j];
+					} else if (transA == 'T' && transB == 'N') {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[j*ldb + k];
+					} else if (transA == 'T' && transB == 'T') {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[k*ldb + j];
+					}
+					CMeta_PRE[j*ldc + i] = alpha * cc + beta * CMeta_PRE[j*ldc + i];
+
+					ASSERT_DBL_NEAR_TOL(CMeta_PRE[j*ldc + i], CMeta_SGEMM[j*ldc + i], DOUBLE_EPS);
+				}
+			}
+		}
+	}
+
+	if (AMeta) free(AMeta), AMeta = NULL;
+	if (BMeta) free(BMeta), BMeta = NULL;
+	if (CMeta_SGEMM) free(CMeta_SGEMM), CMeta_SGEMM = NULL;
+	if (CMeta_PRE) free(CMeta_PRE), CMeta_PRE = NULL;
+}
+
+/*
+	CblasColMajor
+	A: K x M
+	B: N x K
+	C: B * A : N x M
+*/
+CTEST(dgemm, dgemm_inc_col_major)
+{
+	double alpha = 1.23f, beta = 0.3453f;
+	blasint M = 211, Max_N = 512, K = 178;
+
+	double *AMeta = (double *)malloc(M*K*sizeof(double)), *BMeta = (double *)malloc(Max_N*K*sizeof(double));
+	double *CMeta_SGEMM = (double*)malloc(M*Max_N*sizeof(double)), *CMeta_PRE = (double*)malloc(M*Max_N*sizeof(double));
+
+	int i, j, k;
+	blasint n;
+	for (i=0; i<M*K; i++) 	   AMeta[i] = (i - M*K/2.0f)/(M*K);
+	for (i=0; i<Max_N*K; i++)  BMeta[i] = (i - Max_N*K/2.0f)/(Max_N*K);
+
+	for (i=0; i<4; i++) {
+		CBLAS_TRANSPOSE transA = (i&1) ? CblasTrans : CblasNoTrans, transB = (i&2) ? CblasTrans : CblasNoTrans;
+
+		for (n=4; n<=Max_N; n = (blasint)(n*1.5 + 1)) {
+			--n;
+			blasint lda = transA == CblasNoTrans ? M : K, ldb = transB == CblasNoTrans ? K : n, ldc = M;
+			for (i=0; i<M; i++) {
+				for (j=0; j<n; j++) {
+					CMeta_PRE[j*ldc + i] = CMeta_SGEMM[j*ldc + i] = (i*j - M*n/2.0f)/(M*n);
+				}
+			}
+			//OpenBLAS baseline
+			cblas_dgemm(CblasColMajor, transA, transB, M, n, K, alpha, AMeta, lda, BMeta, ldb, beta, CMeta_SGEMM, ldc);
+
+			for (i=0; i<M; i++) {
+				for (j=0; j<n; j++) {
+					double cc = 0.0f;
+					if (transA == CblasNoTrans && transB == CblasNoTrans) {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[j*ldb + k];
+					} else if (transA == CblasNoTrans && transB == CblasTrans) {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[k*ldb + j];
+					} else if (transA == CblasTrans && transB == CblasNoTrans) {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[j*ldb + k];
+					} else if (transA == CblasTrans && transB == CblasTrans) {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[k*ldb + j];
+					}
+					CMeta_PRE[j*ldc + i] = alpha * cc + beta * CMeta_PRE[j*ldc + i];
+
+					ASSERT_DBL_NEAR_TOL(CMeta_PRE[j*ldc + i], CMeta_SGEMM[j*ldc + i], DOUBLE_EPS);
+				}
+			}
+		}
+	}
+
+	if (AMeta) free(AMeta), AMeta = NULL;
+	if (BMeta) free(BMeta), BMeta = NULL;
+	if (CMeta_SGEMM) free(CMeta_SGEMM), CMeta_SGEMM = NULL;
+	if (CMeta_PRE) free(CMeta_PRE), CMeta_PRE = NULL;
+}
+
+/*
+	CblasRowMajor
+	A: M x K
+	B: K x N
+	C: A * B : M x N
+*/
+CTEST(dgemm, dgemm_inc_row_major)
+{
+	double alpha = 1.23f, beta = 0.3453f;
+	blasint M = 211, Max_N = 512, K = 178;
+
+	double *AMeta = (double *)malloc(M*K*sizeof(double)), *BMeta = (double *)malloc(Max_N*K*sizeof(double));
+	double *CMeta_SGEMM = (double*)malloc(M*Max_N*sizeof(double)), *CMeta_PRE = (double*)malloc(M*Max_N*sizeof(double));
+
+	int i, j, k;
+	blasint n;
+	for (i=0; i<M*K; i++) 	   AMeta[i] = (i - M*K/2.0f)/(M*K);
+	for (i=0; i<Max_N*K; i++)  BMeta[i] = (i - Max_N*K/2.0f)/(Max_N*K);
+
+	for (i=0; i<4; i++) {
+		CBLAS_TRANSPOSE transA = (i&1) ? CblasTrans : CblasNoTrans, transB = (i&2) ? CblasTrans : CblasNoTrans;
+
+		for (n=4; n<=Max_N; n = (blasint)(n*1.5 + 1)) {
+			--n;
+			blasint lda = transA == CblasNoTrans ? K : M, ldb = transB == CblasNoTrans ? n : K, ldc = n;
+			for (i=0; i<M; i++) {
+				for (j=0; j<n; j++) {
+					CMeta_PRE[i*ldc + j] = CMeta_SGEMM[i*ldc + j] = (i*j - M*n/2.0f)/(M*n);
+				}
+			}
+			//OpenBLAS baseline
+			cblas_dgemm(CblasRowMajor, transA, transB, M, n, K, alpha, AMeta, lda, BMeta, ldb, beta, CMeta_SGEMM, ldc);
+
+			for (i=0; i<M; i++) {
+				for (j=0; j<n; j++) {
+					double cc = 0.0f;
+					if (transA == CblasNoTrans && transB == CblasNoTrans) {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[k*ldb + j];
+					} else if (transA == CblasNoTrans && transB == CblasTrans) {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[j*ldb + k];
+					} else if (transA == CblasTrans && transB == CblasNoTrans) {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[k*ldb + j];
+					} else if (transA == CblasTrans && transB == CblasTrans) {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[j*ldb + k];
+					}
+					CMeta_PRE[i*ldc + j] = alpha * cc + beta * CMeta_PRE[i*ldc + j];
+
+					ASSERT_DBL_NEAR_TOL(CMeta_PRE[i*ldc + j], CMeta_SGEMM[i*ldc + j], DOUBLE_EPS);
+				}
+			}
+		}
+	}
+
+	if (AMeta) free(AMeta), AMeta = NULL;
+	if (BMeta) free(BMeta), BMeta = NULL;
+	if (CMeta_SGEMM) free(CMeta_SGEMM), CMeta_SGEMM = NULL;
+	if (CMeta_PRE) free(CMeta_PRE), CMeta_PRE = NULL;
+}
+
+/*
+	CblasColMajor
+	A: K x M
+	B: N x K
+	C: B * A : N x M
+*/
+CTEST(dgemm, dgemm_inc_precopy_blasfunc)
+{
+	double alpha = 1.23f, beta = 0.3453f;
+	blasint M = 211, Max_N = 512, K = 178;
+    blasint align_param = 0;
+    BLASFUNC(dgemm_get_align)(&align_param);
+	double *AMeta = (double *)malloc(M*K*sizeof(double)), *A_PRECOPY = (double *)malloc(M*K*sizeof(double) + align_param), *BMeta = (double *)malloc(Max_N*K*sizeof(double));
+	double *CMeta_SGEMM = (double*)malloc(M*Max_N*sizeof(double)), *CMeta_PRE = (double*)malloc(M*Max_N*sizeof(double));
+	double *A_PRECOPY_ALIGN = ALIGN_PTR(A_PRECOPY, align_param, double);
+
+	int i, j, k;
+	blasint n;
+	for (i=0; i<M*K; i++) 	   AMeta[i] = (i - M*K/2.0f)/(M*K);
+	for (i=0; i<Max_N*K; i++)  BMeta[i] = (i - Max_N*K/2.0f)/(Max_N*K);
+
+	for (i=0; i<4; i++) {
+		char transA = (i&1) ? 'T' : 'N', transB = (i&2) ? 'T' : 'N';
+
+		blasint lda = transA == 'N' ? M : K;
+		BLASFUNC(dgemm_precopy)(&transA, &transB, (blasint*)&M, (blasint*)&K, AMeta, &lda, A_PRECOPY_ALIGN);
+
+		for (n=4; n<=Max_N; n = (blasint)(n*1.5 + 1)) {
+			--n;
+			blasint lda = transA == 'N' ? M : K, ldb = transB == 'N' ? K : n, ldc = M;
+			for (i=0; i<M; i++) {
+				for (j=0; j<n; j++) {
+					CMeta_PRE[j*ldc + i] = CMeta_SGEMM[j*ldc + i] = (i*j - M*n/2.0f)/(M*n);
+				}
+			}
+			//OpenBLAS baseline
+			BLASFUNC(dgemm_mul)(&transA, &transB, (blasint*)&M, (blasint*)&n, (blasint*)&K, &alpha, A_PRECOPY_ALIGN, &lda, BMeta, &ldb, &beta, CMeta_SGEMM, &ldc);
+
+			for (i=0; i<M; i++) {
+				for (j=0; j<n; j++) {
+					double cc = 0.0f;
+					if (transA == 'N' && transB == 'N') {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[j*ldb + k];
+					} else if (transA == 'N' && transB == 'T') {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[k*ldb + j];
+					} else if (transA == 'T' && transB == 'N') {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[j*ldb + k];
+					} else if (transA == 'T' && transB == 'T') {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[k*ldb + j];
+					}
+					CMeta_PRE[j*ldc + i] = alpha * cc + beta * CMeta_PRE[j*ldc + i];
+
+					ASSERT_DBL_NEAR_TOL(CMeta_PRE[i], CMeta_SGEMM[i], DOUBLE_EPS);
+				}
+			}
+		}
+	}
+
+	if (AMeta) free(AMeta), AMeta = NULL;
+	if (A_PRECOPY) free(A_PRECOPY), A_PRECOPY = NULL;
+	if (BMeta) free(BMeta), BMeta = NULL;
+	if (CMeta_SGEMM) free(CMeta_SGEMM), CMeta_SGEMM = NULL;
+	if (CMeta_PRE) free(CMeta_PRE), CMeta_PRE = NULL;
+}
+
+/*
+	CblasColMajor
+	A: K x M
+	B: N x K
+	C: B * A : N x M
+*/
+CTEST(dgemm, dgemm_inc_precopy_col_major)
+{
+	double alpha = 1.23f, beta = 0.3453f;
+	blasint M = 211, Max_N = 512, K = 178;
+    blasint align_param = 0;
+    cblas_dgemm_get_align(&align_param);
+	double *AMeta = (double *)malloc(M*K*sizeof(double)), *A_PRECOPY = (double *)malloc(M*K*sizeof(double) + align_param), *BMeta = (double *)malloc(Max_N*K*sizeof(double));
+	double *CMeta_SGEMM = (double*)malloc(M*Max_N*sizeof(double)), *CMeta_PRE = (double*)malloc(M*Max_N*sizeof(double));
+	double *A_PRECOPY_ALIGN = ALIGN_PTR(A_PRECOPY, align_param, double);
+
+	int i, j, k;
+	blasint n;
+	for (i=0; i<M*K; i++) 	   AMeta[i] = (i - M*K/2.0f)/(M*K);
+	for (i=0; i<Max_N*K; i++)  BMeta[i] = (i - Max_N*K/2.0f)/(Max_N*K);
+
+	for (i=0; i<4; i++) {
+		CBLAS_TRANSPOSE transA = (i&1) ? CblasTrans : CblasNoTrans, transB = (i&2) ? CblasTrans : CblasNoTrans;
+
+		blasint lda = transA == CblasNoTrans ? M : K;
+		cblas_dgemm_precopy(CblasColMajor, transA, transB, M, K, AMeta, lda, A_PRECOPY_ALIGN);
+
+		for (n=4; n<=Max_N; n = (blasint)(n*1.5 + 1)) {
+			--n;
+			blasint lda = transA == CblasNoTrans ? M : K, ldb = transB == CblasNoTrans ? K : n, ldc = M;
+			for (i=0; i<M; i++) {
+				for (j=0; j<n; j++) {
+					CMeta_PRE[j*ldc + i] = CMeta_SGEMM[j*ldc + i] = (i*j - M*n/2.0f)/(M*n);
+				}
+			}
+			//OpenBLAS baseline
+			cblas_dgemm_mul(CblasColMajor, transA, transB, M, n, K, alpha, A_PRECOPY_ALIGN, lda, BMeta, ldb, beta, CMeta_SGEMM, ldc);
+
+			for (i=0; i<M; i++) {
+				for (j=0; j<n; j++) {
+					double cc = 0.0f;
+					if (transA == CblasNoTrans && transB == CblasNoTrans) {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[j*ldb + k];
+					} else if (transA == CblasNoTrans && transB == CblasTrans) {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[k*ldb + j];
+					} else if (transA == CblasTrans && transB == CblasNoTrans) {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[j*ldb + k];
+					} else if (transA == CblasTrans && transB == CblasTrans) {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[k*ldb + j];
+					}
+					CMeta_PRE[j*ldc + i] = alpha * cc + beta * CMeta_PRE[j*ldc + i];
+
+					ASSERT_DBL_NEAR_TOL(CMeta_PRE[j*ldc + i], CMeta_SGEMM[j*ldc + i], DOUBLE_EPS);
+				}
+			}
+		}
+	}
+
+	if (AMeta) free(AMeta), AMeta = NULL;
+	if (A_PRECOPY) free(A_PRECOPY), A_PRECOPY = NULL;
+	if (BMeta) free(BMeta), BMeta = NULL;
+	if (CMeta_SGEMM) free(CMeta_SGEMM), CMeta_SGEMM = NULL;
+	if (CMeta_PRE) free(CMeta_PRE), CMeta_PRE = NULL;
+}
+
+/*
+	CblasRowMajor
+	A: M x K
+	B: K x N
+	C: A * B : M x N
+*/
+CTEST(dgemm, dgemm_inc_precopy_row_major)
+{
+	double alpha = 1.23f, beta = 0.3453f;
+	blasint Max_M = 512, N = 211, K = 178;
+    blasint align_param = 0;
+    cblas_dgemm_get_align(&align_param);
+	double *AMeta = (double *)malloc(Max_M*K*sizeof(double)), *BMeta = (double *)malloc(N*K*sizeof(double)), *B_PRECOPY = (double *)malloc(N*K*sizeof(double) + align_param);
+	double *CMeta_SGEMM = (double*)malloc(Max_M*N*sizeof(double)), *CMeta_PRE = (double*)malloc(Max_M*N*sizeof(double));
+	double *B_PRECOPY_ALIGN = ALIGN_PTR(B_PRECOPY, align_param, double);
+
+	int i, j, k;
+	blasint m;
+	for (i=0; i<Max_M*K; i++) 	AMeta[i] = (i - Max_M*K/2.0f)/(Max_M*K);
+	for (i=0; i<N*K; i++)  		BMeta[i] = (i - N*K/2.0f)/(N*K);
+
+	for (i=0; i<4; i++) {
+		CBLAS_TRANSPOSE transA = (i&1) ? CblasTrans : CblasNoTrans, transB = (i&2) ? CblasTrans : CblasNoTrans;
+
+		blasint ldb = transB == CblasNoTrans ? N : K;
+		cblas_dgemm_precopy(CblasRowMajor, transA, transB, N, K, BMeta, ldb, B_PRECOPY_ALIGN);
+
+		for (m=4; m<=Max_M; m = (blasint)(m*1.5 + 1)) {
+			--m;
+			blasint lda = transA == CblasNoTrans ? K : m, ldb = transB == CblasNoTrans ? N : K, ldc = N;
+			for (i=0; i<m; i++) {
+				for (j=0; j<N; j++) {
+					CMeta_PRE[i*ldc + j] = CMeta_SGEMM[i*ldc + j] = (i*j - m*N/2.0f)/(m*N);
+				}
+			}
+			//OpenBLAS baseline
+			cblas_dgemm_mul(CblasRowMajor, transA, transB, m, N, K, alpha, AMeta, lda, B_PRECOPY_ALIGN, ldb, beta, CMeta_SGEMM, ldc);
+
+			for (i=0; i<m; i++) {
+				for (j=0; j<N; j++) {
+					double cc = 0.0f;
+					if (transA == CblasNoTrans && transB == CblasNoTrans) {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[k*ldb + j];
+					} else if (transA == CblasNoTrans && transB == CblasTrans) {
+						for (k=0; k<K; k++) cc += AMeta[i*lda + k] * BMeta[j*ldb + k];
+					} else if (transA == CblasTrans && transB == CblasNoTrans) {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[k*ldb + j];
+					} else if (transA == CblasTrans && transB == CblasTrans) {
+						for (k=0; k<K; k++) cc += AMeta[k*lda + i] * BMeta[j*ldb + k];
+					}
+					CMeta_PRE[i*ldc + j] = alpha * cc + beta * CMeta_PRE[i*ldc + j];
+
+					ASSERT_DBL_NEAR_TOL(CMeta_PRE[i*ldc + j], CMeta_SGEMM[i*ldc + j], DOUBLE_EPS);
+				}
+			}
+		}
+	}
+
+	if (AMeta) free(AMeta), AMeta = NULL;
+	if (B_PRECOPY) free(B_PRECOPY), B_PRECOPY = NULL;
+	if (BMeta) free(BMeta), BMeta = NULL;
+	if (CMeta_SGEMM) free(CMeta_SGEMM), CMeta_SGEMM = NULL;
+	if (CMeta_PRE) free(CMeta_PRE), CMeta_PRE = NULL;
+}

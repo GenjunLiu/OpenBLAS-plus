@@ -281,6 +281,9 @@
 
 #endif
 
+#define	DGEMM_NT_PLUS			dgemm_nt_plus
+#define DGEMM_KERNEL_PLUS 		dgemm_kernel_plus
+
 #define	DGEMM_NN		dgemm_nn
 #define	DGEMM_CN		dgemm_tn
 #define	DGEMM_TN		dgemm_tn
@@ -297,6 +300,16 @@
 #define	DGEMM_RT		dgemm_nt
 #define	DGEMM_RC		dgemm_nt
 #define	DGEMM_RR		dgemm_nn
+
+#define	DGEMM_NN_PRECOPY		dgemm_nn_precopy
+#define	DGEMM_TN_PRECOPY		dgemm_tn_precopy
+#define	DGEMM_NT_PRECOPY		dgemm_nt_precopy
+#define	DGEMM_TT_PRECOPY		dgemm_tt_precopy
+
+#define	DGEMM_NN_MUL		dgemm_nn_mul
+#define	DGEMM_TN_MUL		dgemm_tn_mul
+#define	DGEMM_NT_MUL		dgemm_nt_mul
+#define	DGEMM_TT_MUL		dgemm_tt_mul
 
 #define	DSYMM_LU		dsymm_LU
 #define	DSYMM_LL		dsymm_LL

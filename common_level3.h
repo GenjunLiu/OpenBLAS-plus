@@ -491,6 +491,10 @@ int xher2k_kernel_UC(BLASLONG m, BLASLONG n, BLASLONG k, xdouble alpha_r, xdoubl
 int xher2k_kernel_LN(BLASLONG m, BLASLONG n, BLASLONG k, xdouble alpha_r, xdouble alpha_i, xdouble *a, xdouble *b, xdouble *c, BLASLONG ldc, BLASLONG offset, int flag);
 int xher2k_kernel_LC(BLASLONG m, BLASLONG n, BLASLONG k, xdouble alpha_r, xdouble alpha_i, xdouble *a, xdouble *b, xdouble *c, BLASLONG ldc, BLASLONG offset, int flag);
 
+int wgemm_kernel_plus(BLASLONG, BLASLONG, BLASLONG, int16_t,  int16_t  *, BLASLONG, int16_t  *, BLASLONG, int16_t  *, BLASLONG);
+int sgemm_kernel_plus(BLASLONG, BLASLONG, BLASLONG, float,  float  *, BLASLONG, float  *, BLASLONG, float  *, BLASLONG);
+int dgemm_kernel_plus(BLASLONG, BLASLONG, BLASLONG, double,  double  *, BLASLONG, double  *, BLASLONG, double  *, BLASLONG);
+
 int sgemm_kernel(BLASLONG, BLASLONG, BLASLONG, float,  float  *, float  *, float  *, BLASLONG);
 int dgemm_kernel(BLASLONG, BLASLONG, BLASLONG, double, double *, double *, double *, BLASLONG);
 
@@ -519,10 +523,34 @@ int cgemm3m_kernel(BLASLONG, BLASLONG, BLASLONG, float,  float,  float  *, float
 int zgemm3m_kernel(BLASLONG, BLASLONG, BLASLONG, double, double, double *, double *, double *, BLASLONG);
 int xgemm3m_kernel(BLASLONG, BLASLONG, BLASLONG, xdouble, xdouble, xdouble *, xdouble *, xdouble *, BLASLONG);
 
+int wgemm_nt_plus(blas_arg_t *, BLASLONG *, BLASLONG *, int16_t *, int16_t *, BLASLONG);
+int sgemm_nt_plus(blas_arg_t *, BLASLONG *, BLASLONG *, float *, float *, BLASLONG);
+int dgemm_nt_plus(blas_arg_t *, BLASLONG *, BLASLONG *, double *, double *, BLASLONG);
+
+int sgemm_nn_precopy(float *, BLASLONG, BLASLONG, BLASLONG, BLASLONG *, float *);
+int sgemm_nt_precopy(float *, BLASLONG, BLASLONG, BLASLONG, BLASLONG *, float *);
+int sgemm_tn_precopy(float *, BLASLONG, BLASLONG, BLASLONG, BLASLONG *, float *);
+int sgemm_tt_precopy(float *, BLASLONG, BLASLONG, BLASLONG, BLASLONG *, float *);
+
+int sgemm_nn_mul(blas_arg_t *, BLASLONG *, BLASLONG *, float *, float *, BLASLONG);
+int sgemm_nt_mul(blas_arg_t *, BLASLONG *, BLASLONG *, float *, float *, BLASLONG);
+int sgemm_tn_mul(blas_arg_t *, BLASLONG *, BLASLONG *, float *, float *, BLASLONG);
+int sgemm_tt_mul(blas_arg_t *, BLASLONG *, BLASLONG *, float *, float *, BLASLONG);
+
 int sgemm_nn(blas_arg_t *, BLASLONG *, BLASLONG *, float *, float *, BLASLONG);
 int sgemm_nt(blas_arg_t *, BLASLONG *, BLASLONG *, float *, float *, BLASLONG);
 int sgemm_tn(blas_arg_t *, BLASLONG *, BLASLONG *, float *, float *, BLASLONG);
 int sgemm_tt(blas_arg_t *, BLASLONG *, BLASLONG *, float *, float *, BLASLONG);
+
+int dgemm_nn_precopy(double *, BLASLONG, BLASLONG, BLASLONG, BLASLONG *, double *);
+int dgemm_nt_precopy(double *, BLASLONG, BLASLONG, BLASLONG, BLASLONG *, double *);
+int dgemm_tn_precopy(double *, BLASLONG, BLASLONG, BLASLONG, BLASLONG *, double *);
+int dgemm_tt_precopy(double *, BLASLONG, BLASLONG, BLASLONG, BLASLONG *, double *);
+
+int dgemm_nn_mul(blas_arg_t *, BLASLONG *, BLASLONG *, double *, double *, BLASLONG);
+int dgemm_nt_mul(blas_arg_t *, BLASLONG *, BLASLONG *, double *, double *, BLASLONG);
+int dgemm_tn_mul(blas_arg_t *, BLASLONG *, BLASLONG *, double *, double *, BLASLONG);
+int dgemm_tt_mul(blas_arg_t *, BLASLONG *, BLASLONG *, double *, double *, BLASLONG);
 
 int dgemm_nn(blas_arg_t *, BLASLONG *, BLASLONG *, double *, double *, BLASLONG);
 int dgemm_nt(blas_arg_t *, BLASLONG *, BLASLONG *, double *, double *, BLASLONG);

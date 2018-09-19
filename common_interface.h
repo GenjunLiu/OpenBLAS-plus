@@ -461,9 +461,23 @@ void BLASFUNC(xhbmv)(char *, blasint *, blasint *, xdouble *, xdouble *, blasint
 		    xdouble *, blasint *, xdouble *, xdouble *, blasint *);
 
 /* Level 3 routines */
+void BLASFUNC(wgemm_plus)(char *, char *, blasint *, blasint *, blasint *, int16_t *,
+	   int16_t  *, blasint *, int16_t  *, blasint *, int16_t  *, int16_t  *, blasint *);
+void BLASFUNC(sgemm_plus)(char *, char *, blasint *, blasint *, blasint *, float *,
+	   float  *, blasint *, float  *, blasint *, float  *, float  *, blasint *);
+void BLASFUNC(dgemm_plus)(char *, char *, blasint *, blasint *, blasint *, double *,
+	   double  *, blasint *, double  *, blasint *, double  *, double  *, blasint *);
 
+void BLASFUNC(sgemm_get_align)(blasint *);
+void BLASFUNC(sgemm_precopy)(char *, char *, blasint *, blasint *, float  *, blasint *, float  *);
+void BLASFUNC(sgemm_mul)(char *, char *, blasint *, blasint *, blasint *, float *,
+	   float  *, blasint *, float  *, blasint *, float  *, float  *, blasint *);
 void BLASFUNC(sgemm)(char *, char *, blasint *, blasint *, blasint *, float *,
 	   float  *, blasint *, float  *, blasint *, float  *, float  *, blasint *);
+void BLASFUNC(dgemm_get_align)(blasint *);
+void BLASFUNC(dgemm_precopy)(char *, char *, blasint *, blasint *, double *, blasint *, double *);
+void BLASFUNC(dgemm_mul)(char *, char *, blasint *, blasint *, blasint *, double *,
+	   double *, blasint *, double *, blasint *, double *, double *, blasint *);
 void BLASFUNC(dgemm)(char *, char *, blasint *, blasint *, blasint *, double *,
 	   double *, blasint *, double *, blasint *, double *, double *, blasint *);
 void BLASFUNC(qgemm)(char *, char *, blasint *, blasint *, blasint *, xdouble *,

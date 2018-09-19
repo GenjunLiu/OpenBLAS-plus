@@ -404,6 +404,10 @@ endif
 
 ifeq ($(ARCH), x86_64)
 
+ifeq ($(CORE), HASWELL)
+USE_BLAS_PLUS = 1
+endif
+
 ifeq ($(CORE), generic)
 NO_EXPRECISION = 1
 endif

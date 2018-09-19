@@ -1,0 +1,17 @@
+OpenBLAS-plus ChangeLog
+====================================================================
+Version 0.2.20
+30-Aug-2018
+
+common:
+        * fix gemm_mul bug on sandybridge, ptr must be aligned
+        * add get_align_param for precopy
+
+
+29-Aug-2018
+
+common:
+        * support precopy for sgemm and dgemm
+
+x86_64:
+        * support wgemm (16bit) for HASWELL

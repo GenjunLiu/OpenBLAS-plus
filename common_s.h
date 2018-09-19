@@ -304,6 +304,19 @@
 #define	SGEMM_RC		sgemm_nt
 #define	SGEMM_RR		sgemm_nn
 
+#define	SGEMM_NT_PLUS			sgemm_nt_plus
+#define SGEMM_KERNEL_PLUS 		sgemm_kernel_plus
+
+#define	SGEMM_NN_PRECOPY		sgemm_nn_precopy
+#define	SGEMM_TN_PRECOPY		sgemm_tn_precopy
+#define	SGEMM_NT_PRECOPY		sgemm_nt_precopy
+#define	SGEMM_TT_PRECOPY		sgemm_tt_precopy
+
+#define	SGEMM_NN_MUL		sgemm_nn_mul
+#define	SGEMM_TN_MUL		sgemm_tn_mul
+#define	SGEMM_NT_MUL		sgemm_nt_mul
+#define	SGEMM_TT_MUL		sgemm_tt_mul
+
 #define	SSYMM_LU		ssymm_LU
 #define	SSYMM_LL		ssymm_LL
 #define	SSYMM_RU		ssymm_RU

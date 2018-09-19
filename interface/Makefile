@@ -21,6 +21,32 @@ endif
 
 ifndef NO_FBLAS
 
+# OpenBLAS EXTENSIONS
+ifeq ($(USE_BLAS_PLUS), 1)
+WBLASPLUS3OBJS    = \
+		wgemm_plus.$(SUFFIX)
+
+SBLASPLUS3OBJS    = \
+		sgemm_plus.$(SUFFIX)
+
+DBLASPLUS3OBJS    = \
+		dgemm_plus.$(SUFFIX)
+endif
+
+SBLASCP3OBJS = \
+		sgemm_get_align.$(SUFFIX) \
+		sgemm_precopy.$(SUFFIX)
+
+SBLASMUL3OBJS  = \
+		sgemm_mul.$(SUFFIX)
+
+DBLASCP3OBJS = \
+		dgemm_get_align.$(SUFFIX) \
+		dgemm_precopy.$(SUFFIX)
+
+DBLASMUL3OBJS  = \
+		dgemm_mul.$(SUFFIX)
+
 SBLAS1OBJS    = \
 		saxpy.$(SUFFIX) sswap.$(SUFFIX) \
 		scopy.$(SUFFIX) sscal.$(SUFFIX) \
@@ -259,6 +285,32 @@ HPLOBJS = dgemm.$(SUFFIX) dtrsm.$(SUFFIX) \
 	  dgemv.$(SUFFIX)  dtrsv.$(SUFFIX) dger.$(SUFFIX) \
 	  idamax.$(SUFFIX) daxpy.$(SUFFIX) dcopy.$(SUFFIX) dscal.$(SUFFIX)
 
+ifeq ($(USE_BLAS_PLUS), 1)
+CWBLASPLUS3OBJS   = \
+	cblas_wgemm_plus.$(SUFFIX)
+
+CSBLASPLUS3OBJS   = \
+	cblas_sgemm_plus.$(SUFFIX)
+
+CDBLASPLUS3OBJS   = \
+	cblas_dgemm_plus.$(SUFFIX)
+
+endif
+
+CSBLASCP3OBJS = \
+	cblas_sgemm_get_align.$(SUFFIX) \
+	cblas_sgemm_precopy.$(SUFFIX)
+
+CSBLASMUL3OBJS  = \
+	cblas_sgemm_mul.$(SUFFIX)
+
+CDBLASCP3OBJS = \
+	cblas_dgemm_get_align.$(SUFFIX) \
+	cblas_dgemm_precopy.$(SUFFIX)
+
+CDBLASMUL3OBJS  = \
+	cblas_dgemm_mul.$(SUFFIX)
+
 CSBLAS1OBJS   = \
 	cblas_isamax.$(SUFFIX) cblas_isamin.$(SUFFIX) cblas_sasum.$(SUFFIX) cblas_saxpy.$(SUFFIX) \
 	cblas_scopy.$(SUFFIX) cblas_sdot.$(SUFFIX) cblas_sdsdot.$(SUFFIX) cblas_dsdot.$(SUFFIX) \
@@ -359,6 +411,17 @@ ifndef NO_CBLAS
 
 override CFLAGS += -I.
 
+ifeq ($(USE_BLAS_PLUS), 1)
+WBLASPLUS3OBJS   += $(CWBLASPLUS3OBJS)
+SBLASPLUS3OBJS   += $(CSBLASPLUS3OBJS)
+DBLASPLUS3OBJS   += $(CDBLASPLUS3OBJS)
+endif
+
+SBLASCP3OBJS += $(CSBLASCP3OBJS)
+SBLASMUL3OBJS+= $(CSBLASMUL3OBJS)
+DBLASCP3OBJS += $(CDBLASCP3OBJS)
+DBLASMUL3OBJS+= $(CDBLASMUL3OBJS)
+
 SBLAS1OBJS   += $(CSBLAS1OBJS)
 SBLAS2OBJS   += $(CSBLAS2OBJS)
 SBLAS3OBJS   += $(CSBLAS3OBJS)
@@ -373,6 +436,17 @@ ZBLAS2OBJS   += $(CZBLAS2OBJS)
 ZBLAS3OBJS   += $(CZBLAS3OBJS)
 
 endif
+
+ifeq ($(USE_BLAS_PLUS), 1)
+WBLASPLUSOBJS    = $(WBLASPLUS3OBJS)
+SBLASPLUSOBJS    = $(SBLASPLUS3OBJS)
+DBLASPLUSOBJS    = $(DBLASPLUS3OBJS)
+endif
+
+SBLASCPOBJS  = $(SBLASCP3OBJS)
+SBLASMULOBJS = $(SBLASMUL3OBJS)
+DBLASCPOBJS  = $(DBLASCP3OBJS)
+DBLASMULOBJS = $(DBLASMUL3OBJS)
 
 SBLASOBJS    = $(SBLAS1OBJS) $(SBLAS2OBJS) $(SBLAS3OBJS)
 DBLASOBJS    = $(DBLAS1OBJS) $(DBLAS2OBJS) $(DBLAS3OBJS)
@@ -482,9 +556,12 @@ level1 : $(SBLAS1OBJS) $(DBLAS1OBJS) $(QBLAS1OBJS) $(CBLAS1OBJS) $(ZBLAS1OBJS) $
 level2 : $(SBLAS2OBJS) $(DBLAS2OBJS) $(QBLAS2OBJS) $(CBLAS2OBJS) $(ZBLAS2OBJS) $(XBLAS2OBJS)
 	$(AR) $(ARFLAGS) -ru $(TOPDIR)/$(LIBNAME) $^
 
-level3 : $(SBLAS3OBJS) $(DBLAS3OBJS) $(QBLAS3OBJS) $(CBLAS3OBJS) $(ZBLAS3OBJS) $(XBLAS3OBJS)
+level3 : $(WBLASPLUS3OBJS) $(SBLASPLUS3OBJS) $(DBLASPLUS3OBJS) $(SBLASCPOBJS) $(SBLASMULOBJS) $(DBLASCPOBJS) $(DBLASMULOBJS) $(SBLAS3OBJS) $(DBLAS3OBJS) $(QBLAS3OBJS) $(CBLAS3OBJS) $(ZBLAS3OBJS) $(XBLAS3OBJS)
 	$(AR) $(ARFLAGS) -ru $(TOPDIR)/$(LIBNAME) $^
 
+$(CWBLASPLUSOBJS) $(CWBLASPLUSOBJS_P) $(CSBLASPLUSOBJS) $(CSBLASPLUSOBJS_P) $(CDBLASPLUSOBJS) $(CDBLASPLUSOBJS_P) \
+$(CSBLASCPOBJS) $(CSBLASCPOBJS_P) $(CSBLASMULOBJS) $(CSBLASMULOBJS_P) \
+$(CDBLASCPOBJS) $(CDBLASCPOBJS_P) $(CDBLASMULOBJS) $(CDBLASMULOBJS_P) \
 $(CSBLASOBJS) $(CSBLASOBJS_P) $(CDBLASOBJS) $(CDBLASOBJS_P) $(CQBLASOBJS) $(CQBLASOBJS_P) \
 $(CCBLASOBJS) $(CCBLASOBJS_P) $(CZBLASOBJS) $(CZBLASOBJS_P) $(CXBLASOBJS) $(CXBLASOBJS_P) : override CFLAGS += -DCBLAS
 
@@ -1185,7 +1262,34 @@ zhpr2.$(SUFFIX) zhpr2.$(PSUFFIX) : zhpr2.c
 xhpr2.$(SUFFIX) xhpr2.$(PSUFFIX) : zhpr2.c
 	$(CC) -c $(CFLAGS) $< -o $(@F)
 
+wgemm_plus.$(SUFFIX) wgemm_plus.$(PSUFFIX) : gemm_plus.c ../param.h
+	$(CC) -c $(CFLAGS) $< -o $(@F)
+
+sgemm_plus.$(SUFFIX) sgemm_plus.$(PSUFFIX) : gemm_plus.c ../param.h
+	$(CC) -c $(CFLAGS) $< -o $(@F)
+
+dgemm_plus.$(SUFFIX) dgemm_plus.$(PSUFFIX) : gemm_plus.c ../param.h
+	$(CC) -c $(CFLAGS) $< -o $(@F)
+
+sgemm_get_align.$(SUFFIX) sgemm_get_align.$(PSUFFIX) : gemm_get_align.c ../param.h
+	$(CC) -c $(CFLAGS) $< -o $(@F)
+
+sgemm_precopy.$(SUFFIX) sgemm_precopy.$(PSUFFIX) : gemm_precopy.c ../param.h
+	$(CC) -c $(CFLAGS) $< -o $(@F)
+
+sgemm_mul.$(SUFFIX) sgemm_mul.$(PSUFFIX) : gemm.c ../param.h
+	$(CC) -c $(CFLAGS) $< -o $(@F)
+
 sgemm.$(SUFFIX) sgemm.$(PSUFFIX) : gemm.c ../param.h
+	$(CC) -c $(CFLAGS) $< -o $(@F)
+
+dgemm_get_align.$(SUFFIX) dgemm_get_align.$(PSUFFIX) : gemm_get_align.c ../param.h
+	$(CC) -c $(CFLAGS) $< -o $(@F)
+
+dgemm_precopy.$(SUFFIX) dgemm_precopy.$(PSUFFIX) : gemm_precopy.c ../param.h
+	$(CC) -c $(CFLAGS) $< -o $(@F)
+
+dgemm_mul.$(SUFFIX) dgemm_mul.$(PSUFFIX) : gemm.c ../param.h
 	$(CC) -c $(CFLAGS) $< -o $(@F)
 
 dgemm.$(SUFFIX) dgemm.$(PSUFFIX) : gemm.c ../param.h
@@ -1719,7 +1823,34 @@ cblas_chemv.$(SUFFIX) cblas_chemv.$(PSUFFIX) : zhemv.c
 cblas_zhemv.$(SUFFIX) cblas_zhemv.$(PSUFFIX) : zhemv.c
 	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
 
+cblas_wgemm_plus.$(SUFFIX) cblas_wgemm_plus.$(PSUFFIX) : gemm_plus.c ../param.h
+	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
+
+cblas_sgemm_plus.$(SUFFIX) cblas_sgemm_plus.$(PSUFFIX) : gemm_plus.c ../param.h
+	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
+
+cblas_dgemm_plus.$(SUFFIX) cblas_dgemm_plus.$(PSUFFIX) : gemm_plus.c ../param.h
+	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
+
+cblas_sgemm_get_align.$(SUFFIX) cblas_sgemm_get_align.$(PSUFFIX) : gemm_get_align.c ../param.h
+	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
+
+cblas_sgemm_precopy.$(SUFFIX) cblas_sgemm_precopy.$(PSUFFIX) : gemm_precopy.c ../param.h
+	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
+
+cblas_sgemm_mul.$(SUFFIX) cblas_sgemm_mul.$(PSUFFIX) : gemm.c ../param.h
+	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
+
 cblas_sgemm.$(SUFFIX) cblas_sgemm.$(PSUFFIX) : gemm.c ../param.h
+	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
+
+cblas_dgemm_get_align.$(SUFFIX) cblas_dgemm_get_align.$(PSUFFIX) : gemm_get_align.c ../param.h
+	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
+
+cblas_dgemm_precopy.$(SUFFIX) cblas_dgemm_precopy.$(PSUFFIX) : gemm_precopy.c ../param.h
+	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
+
+cblas_dgemm_mul.$(SUFFIX) cblas_dgemm_mul.$(PSUFFIX) : gemm.c ../param.h
 	$(CC) -DCBLAS -c $(CFLAGS) $< -o $(@F)
 
 cblas_dgemm.$(SUFFIX) cblas_dgemm.$(PSUFFIX) : gemm.c ../param.h

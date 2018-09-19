@@ -39,6 +39,7 @@
 #ifndef COMMON_MACRO
 #define COMMON_MACRO
 
+#include "common_w.h"
 #include "common_s.h"
 #include "common_d.h"
 #include "common_q.h"
@@ -456,6 +457,46 @@
 #define SYMM_OUTCOPY		DSYMM_OUTCOPY
 #define SYMM_OLTCOPY		DSYMM_OLTCOPY
 
+#define GEMM_KERNEL_NT_PLUS  DGEMM_KERNEL_PLUS
+#define GEMM_NT_PLUS         DGEMM_NT_PLUS
+
+#ifdef SPLITSGEMM
+#ifdef PRECOPY
+#define	GEMM_NN			DGEMM_NN_PRECOPY
+#define	GEMM_CN			DGEMM_TN_PRECOPY
+#define	GEMM_TN			DGEMM_TN_PRECOPY
+#define	GEMM_NC			DGEMM_NT_PRECOPY
+#define	GEMM_NT			DGEMM_NT_PRECOPY
+#define	GEMM_CC			DGEMM_TT_PRECOPY
+#define	GEMM_CT			DGEMM_TT_PRECOPY
+#define	GEMM_TC			DGEMM_TT_PRECOPY
+#define	GEMM_TT			DGEMM_TT_PRECOPY
+#define	GEMM_NR			DGEMM_NN_PRECOPY
+#define	GEMM_TR			DGEMM_TN_PRECOPY
+#define	GEMM_CR			DGEMM_TN_PRECOPY
+#define	GEMM_RN			DGEMM_NN_PRECOPY
+#define	GEMM_RT			DGEMM_NT_PRECOPY
+#define	GEMM_RC			DGEMM_NT_PRECOPY
+#define	GEMM_RR			DGEMM_NN_PRECOPY
+#else /*MULTIPY*/
+#define	GEMM_NN			DGEMM_NN_MUL
+#define	GEMM_CN			DGEMM_TN_MUL
+#define	GEMM_TN			DGEMM_TN_MUL
+#define	GEMM_NC			DGEMM_NT_MUL
+#define	GEMM_NT			DGEMM_NT_MUL
+#define	GEMM_CC			DGEMM_TT_MUL
+#define	GEMM_CT			DGEMM_TT_MUL
+#define	GEMM_TC			DGEMM_TT_MUL
+#define	GEMM_TT			DGEMM_TT_MUL
+#define	GEMM_NR			DGEMM_NN_MUL
+#define	GEMM_TR			DGEMM_TN_MUL
+#define	GEMM_CR			DGEMM_TN_MUL
+#define	GEMM_RN			DGEMM_NN_MUL
+#define	GEMM_RT			DGEMM_NT_MUL
+#define	GEMM_RC			DGEMM_NT_MUL
+#define	GEMM_RR			DGEMM_NN_MUL
+#endif
+#else
 #define	GEMM_NN			DGEMM_NN
 #define	GEMM_CN			DGEMM_TN
 #define	GEMM_TN			DGEMM_TN
@@ -472,6 +513,7 @@
 #define	GEMM_RT			DGEMM_NT
 #define	GEMM_RC			DGEMM_NT
 #define	GEMM_RR			DGEMM_NN
+#endif
 
 #define	SYMM_LU			DSYMM_LU
 #define	SYMM_LL			DSYMM_LL
@@ -640,6 +682,12 @@
 #define IMATCOPY_K_RT		DIMATCOPY_K_RT
 
 #define GEADD_K                 DGEADD_K 
+
+#elif defined(INT16)
+
+#define GEMM_KERNEL_NT_PLUS  WGEMM_KERNEL_PLUS
+#define GEMM_NT_PLUS         WGEMM_NT_PLUS
+
 #else
 
 #define	AMAX_K			SAMAX_K
@@ -758,6 +806,46 @@
 #define SYMM_OUTCOPY		SSYMM_OUTCOPY
 #define SYMM_OLTCOPY		SSYMM_OLTCOPY
 
+#define GEMM_KERNEL_NT_PLUS  SGEMM_KERNEL_PLUS
+#define GEMM_NT_PLUS         SGEMM_NT_PLUS
+
+#ifdef SPLITSGEMM
+#ifdef PRECOPY
+#define	GEMM_NN			SGEMM_NN_PRECOPY
+#define	GEMM_CN			SGEMM_TN_PRECOPY
+#define	GEMM_TN			SGEMM_TN_PRECOPY
+#define	GEMM_NC			SGEMM_NT_PRECOPY
+#define	GEMM_NT			SGEMM_NT_PRECOPY
+#define	GEMM_CC			SGEMM_TT_PRECOPY
+#define	GEMM_CT			SGEMM_TT_PRECOPY
+#define	GEMM_TC			SGEMM_TT_PRECOPY
+#define	GEMM_TT			SGEMM_TT_PRECOPY
+#define	GEMM_NR			SGEMM_NN_PRECOPY
+#define	GEMM_TR			SGEMM_TN_PRECOPY
+#define	GEMM_CR			SGEMM_TN_PRECOPY
+#define	GEMM_RN			SGEMM_NN_PRECOPY
+#define	GEMM_RT			SGEMM_NT_PRECOPY
+#define	GEMM_RC			SGEMM_NT_PRECOPY
+#define	GEMM_RR			SGEMM_NN_PRECOPY
+#else /*MULTIPY*/
+#define	GEMM_NN			SGEMM_NN_MUL
+#define	GEMM_CN			SGEMM_TN_MUL
+#define	GEMM_TN			SGEMM_TN_MUL
+#define	GEMM_NC			SGEMM_NT_MUL
+#define	GEMM_NT			SGEMM_NT_MUL
+#define	GEMM_CC			SGEMM_TT_MUL
+#define	GEMM_CT			SGEMM_TT_MUL
+#define	GEMM_TC			SGEMM_TT_MUL
+#define	GEMM_TT			SGEMM_TT_MUL
+#define	GEMM_NR			SGEMM_NN_MUL
+#define	GEMM_TR			SGEMM_TN_MUL
+#define	GEMM_CR			SGEMM_TN_MUL
+#define	GEMM_RN			SGEMM_NN_MUL
+#define	GEMM_RT			SGEMM_NT_MUL
+#define	GEMM_RC			SGEMM_NT_MUL
+#define	GEMM_RR			SGEMM_NN_MUL
+#endif
+#else
 #define	GEMM_NN			SGEMM_NN
 #define	GEMM_CN			SGEMM_TN
 #define	GEMM_TN			SGEMM_TN
@@ -774,6 +862,7 @@
 #define	GEMM_RT			SGEMM_NT
 #define	GEMM_RC			SGEMM_NT
 #define	GEMM_RR			SGEMM_NN
+#endif
 
 #define	SYMM_LU			SSYMM_LU
 #define	SYMM_LL			SSYMM_LL
@@ -2196,6 +2285,9 @@
 #if defined(ARCH_X86) || defined(ARCH_X86_64) || defined(ARCH_IA64) || defined(ARCH_MIPS64) || defined(ARCH_ARM64)
 extern BLASLONG gemm_offset_a;
 extern BLASLONG gemm_offset_b;
+extern BLASLONG gemm_plus_p;
+extern BLASLONG gemm_plus_q;
+extern BLASLONG gemm_plus_r;
 extern BLASLONG sgemm_p;
 extern BLASLONG sgemm_q;
 extern BLASLONG sgemm_r;

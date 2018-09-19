@@ -62,6 +62,14 @@ BLASLONG gemm_offset_b = DEFAULT_GEMM_OFFSET_B;
 BLASLONG gemm_offset_b = GEMM_OFFSET_B;
 #endif
 
+#ifdef USE_BLAS_PLUS
+#if GEMM_PLUS_P == gemm_plus_p
+BLASLONG gemm_plus_p = DEFAULT_GEMM_P;
+#else
+BLASLONG gemm_plus_p = GEMM_PLUS_P;
+#endif
+#endif
+
 #if SGEMM_P == sgemm_p
 BLASLONG sgemm_p = DEFAULT_GEMM_P;
 #else
@@ -83,6 +91,14 @@ BLASLONG zgemm_p = DEFAULT_GEMM_P;
 BLASLONG zgemm_p = ZGEMM_P;
 #endif
 
+#ifdef USE_BLAS_PLUS
+#if GEMM_PLUS_Q == gemm_plus_q
+BLASLONG gemm_plus_q = DEFAULT_GEMM_Q;
+#else
+BLASLONG gemm_plus_q = GEMM_PLUS_Q;
+#endif
+#endif
+
 #if SGEMM_Q == sgemm_q
 BLASLONG sgemm_q = DEFAULT_GEMM_Q;
 #else
@@ -102,6 +118,14 @@ BLASLONG cgemm_q = CGEMM_Q;
 BLASLONG zgemm_q = DEFAULT_GEMM_Q;
 #else
 BLASLONG zgemm_q = ZGEMM_Q;
+#endif
+
+#ifdef USE_BLAS_PLUS
+#if GEMM_PLUS_R == gemm_plus_r
+BLASLONG gemm_plus_r = DEFAULT_GEMM_R;
+#else
+BLASLONG gemm_plus_r = GEMM_PLUS_R;
+#endif
 #endif
 
 #if SGEMM_R == sgemm_r
@@ -497,6 +521,10 @@ void blas_set_parameter(void){
   if (xgemm_p == 0) xgemm_p = 64;
 #endif
 
+#ifdef USE_BLAS_PLUS
+  gemm_plus_p = ((gemm_plus_p + GEMM_PLUS_UNROLL_M - 1)/GEMM_PLUS_UNROLL_M) * GEMM_PLUS_UNROLL_M;
+#endif
+
   sgemm_p = ((sgemm_p + SGEMM_UNROLL_M - 1)/SGEMM_UNROLL_M) * SGEMM_UNROLL_M;
   dgemm_p = ((dgemm_p + DGEMM_UNROLL_M - 1)/DGEMM_UNROLL_M) * DGEMM_UNROLL_M;
   cgemm_p = ((cgemm_p + CGEMM_UNROLL_M - 1)/CGEMM_UNROLL_M) * CGEMM_UNROLL_M;
@@ -597,6 +625,10 @@ void blas_set_parameter(void){
 
   size = BITMASK(cpuid3, 16, 0xff);
 
+#ifdef USE_BLAS_PLUS
+  gemm_plus_p = 384 * (size + 1);
+#endif
+
   sgemm_p = 192 * (size + 1);
   dgemm_p =  96 * (size + 1);
   cgemm_p =  96 * (size + 1);
@@ -608,6 +640,10 @@ void blas_set_parameter(void){
 #ifdef QUAD_PRECISION
   qgemm_p =  32 * (size + 1);
   xgemm_p =  16 * (size + 1);
+#endif
+
+#ifdef USE_BLAS_PLUS
+  gemm_plus_r = (((BUFFER_SIZE - ((gemm_plus_p * gemm_plus_q *  4 + GEMM_OFFSET_A + GEMM_ALIGN) & ~GEMM_ALIGN)) / (gemm_plus_q *  4)) - 15) & ~15;
 #endif
 
   sgemm_r = (((BUFFER_SIZE - ((SGEMM_P * SGEMM_Q *  4 + GEMM_OFFSET_A + GEMM_ALIGN) & ~GEMM_ALIGN)) / (SGEMM_Q *  4)) - 15) & ~15;

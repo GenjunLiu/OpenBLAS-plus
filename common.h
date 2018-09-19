@@ -295,6 +295,11 @@ typedef int blasint;
 #define SIZE	8
 #define  BASE_SHIFT 3
 #define ZBASE_SHIFT 4
+#elif defined(INT16)
+#define FLOAT int16_t
+#define SIZE 2
+#define BASE_SHIFT 1
+#define ZBASE_SHIFT 1
 #else
 #define FLOAT	float
 #define SIZE    4

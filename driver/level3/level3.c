@@ -38,6 +38,18 @@
 
 /* This file is a template for level 3 operation */
 
+#ifdef SPLITSGEMM
+#ifdef PRECOPY
+#define COPY_ONLY
+#else
+#define MUL_OPERATION
+#define WITHOUT_COPY
+#endif
+#else
+#define INPUT_COPY
+#define MUL_OPERATION
+#endif
+
 #ifndef BETA_OPERATION
 #if !defined(XDOUBLE) || !defined(QUAD_PRECISION)
 #ifndef COMPLEX
@@ -244,7 +256,9 @@ int CNAME(blas_arg_t *args, BLASLONG *range_m, BLASLONG *range_n,
 
 	  qtox(&xbeta, beta);
 #endif
+    #ifdef MUL_OPERATION
 	  BETA_OPERATION(m_from, m_to, n_from, n_to, beta, c, ldc);
+    #endif
 	}
   }
 
@@ -284,6 +298,13 @@ int CNAME(blas_arg_t *args, BLASLONG *range_m, BLASLONG *range_n,
   kernelcost = 0;
 #endif
 
+#ifdef COPY_ONLY
+  FLOAT *sa_out = c;
+#endif
+#ifdef WITHOUT_COPY
+  FLOAT *sa_next = a;
+#endif
+
   for(js = n_from; js < n_to; js += GEMM_R){
     min_j = n_to - js;
     if (min_j > GEMM_R) min_j = GEMM_R;
@@ -319,10 +340,21 @@ int CNAME(blas_arg_t *args, BLASLONG *range_m, BLASLONG *range_n,
 
       START_RPCC();
 
+#ifdef INPUT_COPY
       ICOPY_OPERATION(min_l, min_i, a, lda, ls, m_from, sa);
+#endif
+#ifdef COPY_ONLY
+      ICOPY_OPERATION(min_l, min_i, a, lda, ls, m_from, sa_out);
+      sa_out += min_l * min_i;
+#endif
+#ifdef WITHOUT_COPY
+      sa = sa_next;
+      sa_next = sa + min_l * min_i;
+#endif
 
       STOP_RPCC(innercost);
 
+#ifdef MUL_OPERATION
 #if defined(FUSED_GEMM) && !defined(TIMING)
 
       FUSED_KERNEL_OPERATION(min_i, min_j, min_l, alpha,
@@ -361,6 +393,7 @@ int CNAME(blas_arg_t *args, BLASLONG *range_m, BLASLONG *range_n,
 	STOP_RPCC(kernelcost);
       }
 #endif
+#endif
 
       for(is = m_from + min_i; is < m_to; is += min_i){
 	min_i = m_to - is;
@@ -374,16 +407,28 @@ int CNAME(blas_arg_t *args, BLASLONG *range_m, BLASLONG *range_n,
 
 	START_RPCC();
 
-	ICOPY_OPERATION(min_l, min_i, a, lda, ls, is, sa);
+#ifdef INPUT_COPY
+      ICOPY_OPERATION(min_l, min_i, a, lda, ls, is, sa);
+#endif
+#ifdef COPY_ONLY
+      ICOPY_OPERATION(min_l, min_i, a, lda, ls, is, sa_out);
+      sa_out += min_l * min_i;
+#endif
+#ifdef WITHOUT_COPY
+      sa = sa_next;
+      sa_next = sa + min_l * min_i;
+#endif
 
 	STOP_RPCC(innercost);
 
 	START_RPCC();
 
+#ifdef MUL_OPERATION
 #if !defined(XDOUBLE)  || !defined(QUAD_PRECISION)
 	KERNEL_OPERATION(min_i, min_j, min_l, alpha, sa, sb, c, ldc, is, js);
 #else
 	KERNEL_OPERATION(min_i, min_j, min_l, (void *)&xalpha, sa, sb, c, ldc, is, js);
+#endif
 #endif
 
 	STOP_RPCC(kernelcost);

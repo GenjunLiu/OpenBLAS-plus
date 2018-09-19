@@ -47,6 +47,12 @@ typedef struct {
   int dtb_entries;
   int offsetA, offsetB, align;
 
+  int gemm_plus_p, gemm_plus_q, gemm_plus_r;
+  int gemm_plus_unroll_m, gemm_plus_unroll_n, gemm_plus_unroll_mn;
+  int    (*wgemm_kernel_plus )(BLASLONG, BLASLONG, BLASLONG, int16_t, int16_t *, BLASLONG, int16_t *, BLASLONG, int16_t *, BLASLONG);
+  int    (*sgemm_kernel_plus )(BLASLONG, BLASLONG, BLASLONG, float, float *, BLASLONG, float *, BLASLONG, float *, BLASLONG);
+  int    (*dgemm_kernel_plus )(BLASLONG, BLASLONG, BLASLONG, double, double *, BLASLONG, double *, BLASLONG, double *, BLASLONG);
+
   int sgemm_p, sgemm_q, sgemm_r;
   int sgemm_unroll_m, sgemm_unroll_n, sgemm_unroll_mn;
 
@@ -901,6 +907,13 @@ extern gotoblas_t *gotoblas;
 
 #define HAVE_EX_L2	gotoblas -> exclusive_cache
 
+#define gemm_plus_p   gotoblas -> gemm_plus_p
+#define gemm_plus_q   gotoblas -> gemm_plus_q
+#define gemm_plus_r   gotoblas -> gemm_plus_r
+#define GEMM_PLUS_UNROLL_M  gotoblas -> gemm_plus_unroll_m
+#define GEMM_PLUS_UNROLL_N  gotoblas -> gemm_plus_unroll_n
+#define GEMM_PLUS_UNROLL_MN gotoblas -> gemm_plus_unroll_mn
+
 #define	SGEMM_P		gotoblas -> sgemm_p
 #define	SGEMM_Q		gotoblas -> sgemm_q
 #define	SGEMM_R		gotoblas -> sgemm_r
@@ -976,6 +989,19 @@ extern gotoblas_t *gotoblas;
 #define HAVE_EX_L2	1
 #else
 #define HAVE_EX_L2	0
+#endif
+
+#if defined(GEMM_PLUS)
+#define GEMM_PLUS_P   GEMM_PLUS_DEFAULT_P
+#define GEMM_PLUS_Q   GEMM_PLUS_DEFAULT_Q
+#define GEMM_PLUS_R   GEMM_PLUS_DEFAULT_R
+#define GEMM_PLUS_UNROLL_M  GEMM_PLUS_DEFAULT_UNROLL_M
+#define GEMM_PLUS_UNROLL_N  GEMM_PLUS_DEFAULT_UNROLL_N
+#ifdef  GEMM_PLUS_DEFAULT_UNROLL_MN
+#define GEMM_PLUS_UNROLL_MN GEMM_PLUS_DEFAULT_UNROLL_MN
+#else
+#define GEMM_PLUS_UNROLL_MN MAX((GEMM_PLUS_UNROLL_M), (GEMM_PLUS_UNROLL_N))
+#endif
 #endif
 
 #define	SGEMM_P		SGEMM_DEFAULT_P
@@ -1089,7 +1115,19 @@ extern gotoblas_t *gotoblas;
 #endif
 
 #ifndef COMPLEX
-#if   defined(XDOUBLE)
+#if   defined(GEMM_PLUS)
+#define GEMM_P      GEMM_PLUS_P
+#define GEMM_Q      GEMM_PLUS_Q
+#define GEMM_R      GEMM_PLUS_R
+#define GEMM_UNROLL_M   GEMM_PLUS_UNROLL_M
+#define GEMM_UNROLL_N   GEMM_PLUS_UNROLL_N
+#define GEMM_UNROLL_MN    GEMM_PLUS_UNROLL_MN
+#define GEMM_DEFAULT_P    GEMM_PLUS_DEFAULT_P
+#define GEMM_DEFAULT_Q    GEMM_PLUS_DEFAULT_Q
+#define GEMM_DEFAULT_R    GEMM_PLUS_DEFAULT_R
+#define GEMM_DEFAULT_UNROLL_M GEMM_PLUS_DEFAULT_UNROLL_M
+#define GEMM_DEFAULT_UNROLL_N GEMM_PLUS_DEFAULT_UNROLL_N
+#elif   defined(XDOUBLE)
 #define GEMM_P			QGEMM_P
 #define GEMM_Q			QGEMM_Q
 #define GEMM_R			QGEMM_R

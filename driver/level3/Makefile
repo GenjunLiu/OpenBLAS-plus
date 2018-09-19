@@ -19,6 +19,29 @@ ifeq ($(ARCH), MIPS)
 USE_GEMM3M = 1
 endif
 
+ifeq ($(USE_BLAS_PLUS), 1)
+WBLASPLUSOBJS   += \
+	wgemm_nt_plus.$(SUFFIX)
+
+SBLASPLUSOBJS   += \
+	sgemm_nt_plus.$(SUFFIX)
+
+DBLASPLUSOBJS   += \
+	dgemm_nt_plus.$(SUFFIX)
+endif
+
+SBLASCPOBJS += \
+	sgemm_nn_precopy.$(SUFFIX) sgemm_nt_precopy.$(SUFFIX) sgemm_tn_precopy.$(SUFFIX) sgemm_tt_precopy.$(SUFFIX)
+
+SBLASMULOBJS += \
+	sgemm_nn_mul.$(SUFFIX) sgemm_nt_mul.$(SUFFIX) sgemm_tn_mul.$(SUFFIX) sgemm_tt_mul.$(SUFFIX)
+
+DBLASCPOBJS += \
+	dgemm_nn_precopy.$(SUFFIX) dgemm_nt_precopy.$(SUFFIX) dgemm_tn_precopy.$(SUFFIX) dgemm_tt_precopy.$(SUFFIX)
+
+DBLASMULOBJS += \
+	dgemm_nn_mul.$(SUFFIX) dgemm_nt_mul.$(SUFFIX) dgemm_tn_mul.$(SUFFIX) dgemm_tt_mul.$(SUFFIX)
+
 SBLASOBJS	+= \
 	sgemm_nn.$(SUFFIX) sgemm_nt.$(SUFFIX) sgemm_tn.$(SUFFIX) sgemm_tt.$(SUFFIX) \
 	strmm_LNUU.$(SUFFIX) strmm_LNUN.$(SUFFIX) strmm_LNLU.$(SUFFIX) strmm_LNLN.$(SUFFIX) \
@@ -283,6 +306,39 @@ endif
 
 all ::
 
+wgemm_nt_plus.$(SUFFIX) : gemm_plus.c level3_plus.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -DINT16 -UDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+sgemm_nt_plus.$(SUFFIX) : gemm_plus.c level3_plus.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+dgemm_nt_plus.$(SUFFIX) : gemm_plus.c level3_plus.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+sgemm_nn_precopy.$(SUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNN $< -o $(@F)
+
+sgemm_nt_precopy.$(SUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+sgemm_tn_precopy.$(SUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DTN $< -o $(@F)
+
+sgemm_tt_precopy.$(SUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DTT $< -o $(@F)
+
+sgemm_nn_mul.$(SUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNN $< -o $(@F)
+
+sgemm_nt_mul.$(SUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+sgemm_tn_mul.$(SUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DTN $< -o $(@F)
+
+sgemm_tt_mul.$(SUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DTT $< -o $(@F)
+
 sgemm_nn.$(SUFFIX) : gemm.c level3.c ../../param.h
 	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNN $< -o $(@F)
 
@@ -294,6 +350,30 @@ sgemm_tn.$(SUFFIX) : gemm.c level3.c ../../param.h
 
 sgemm_tt.$(SUFFIX) : gemm.c level3.c ../../param.h
 	$(CC) $(CFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DTT $< -o $(@F)
+
+dgemm_nn_precopy.$(SUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNN $< -o $(@F)
+
+dgemm_nt_precopy.$(SUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+dgemm_tn_precopy.$(SUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DTN $< -o $(@F)
+
+dgemm_tt_precopy.$(SUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DTT $< -o $(@F)
+
+dgemm_nn_mul.$(SUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNN $< -o $(@F)
+
+dgemm_nt_mul.$(SUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+dgemm_tn_mul.$(SUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DTN $< -o $(@F)
+
+dgemm_tt_mul.$(SUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(CFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DTT $< -o $(@F)
 
 dgemm_nn.$(SUFFIX) : gemm.c level3.c ../../param.h
 	$(CC) $(CFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNN $< -o $(@F)
@@ -2652,6 +2732,30 @@ xtrsm_RCLU.$(SUFFIX) : trsm_R.c
 xtrsm_RCLN.$(SUFFIX) : trsm_R.c
 	$(CC) -c $(CFLAGS) -DCOMPLEX -DXDOUBLE -DTRANSA -UUPPER -UUNIT -DCONJ $< -o $(@F)
 
+sgemm_nn_precopy.$(PSUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNN $< -o $(@F)
+
+sgemm_nt_precopy.$(PSUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+sgemm_tn_precopy.$(PSUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DTN $< -o $(@F)
+
+sgemm_tt_precopy.$(PSUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DTT $< -o $(@F)
+
+sgemm_nn_mul.$(PSUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNN $< -o $(@F)
+
+sgemm_nt_mul.$(PSUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+sgemm_tn_mul.$(PSUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DTN $< -o $(@F)
+
+sgemm_tt_mul.$(PSUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DTT $< -o $(@F)
+
 sgemm_nn.$(PSUFFIX) : gemm.c level3.c ../../param.h
 	$(CC) $(PFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DNN $< -o $(@F)
 
@@ -2663,6 +2767,30 @@ sgemm_tn.$(PSUFFIX) : gemm.c level3.c ../../param.h
 
 sgemm_tt.$(PSUFFIX) : gemm.c level3.c ../../param.h
 	$(CC) $(PFLAGS) $(BLOCKS) -c -UDOUBLE -UCOMPLEX -DTT $< -o $(@F)
+
+dgemm_nn_precopy.$(PSUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNN $< -o $(@F)
+
+dgemm_nt_precopy.$(PSUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+dgemm_tn_precopy.$(PSUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DTN $< -o $(@F)
+
+dgemm_tt_precopy.$(PSUFFIX) : gemm_precopy.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DTT $< -o $(@F)
+
+dgemm_nn_mul.$(PSUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNN $< -o $(@F)
+
+dgemm_nt_mul.$(PSUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNT $< -o $(@F)
+
+dgemm_tn_mul.$(PSUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DTN $< -o $(@F)
+
+dgemm_tt_mul.$(PSUFFIX) : gemm.c level3.c ../../param.h
+	$(CC) $(PFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DTT $< -o $(@F)
 
 dgemm_nn.$(PSUFFIX) : gemm.c level3.c ../../param.h
 	$(CC) $(PFLAGS) $(BLOCKS) -c -DDOUBLE -UCOMPLEX -DNN $< -o $(@F)
