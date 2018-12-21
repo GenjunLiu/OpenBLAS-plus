@@ -117,7 +117,7 @@ void NAME(char *TRANSA, char *TRANSB,
 
   info = 0;
 
-  if ((intptr_t)c & GEMM_ALIGN) info =  6;
+  if ((intptr_t)c & GEMM_PRECOPY_ALIGN) info =  6;
   if (lda < nrowa)    info =  5;
   if (m < 0)          info =  4;
   if (k < 0)          info =  3;
@@ -159,7 +159,7 @@ void CNAME(enum CBLAS_ORDER order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANS
     nrowa = m;
     if (transa & 1) nrowa = k;
 
-    if ((intptr_t)c & GEMM_ALIGN) info =  6;
+    if ((intptr_t)c & GEMM_PRECOPY_ALIGN) info =  6;
     if (lda < nrowa)    info =  5;
     if (m < 0)          info =  4;
     if (k < 0)          info =  3;
@@ -176,7 +176,7 @@ void CNAME(enum CBLAS_ORDER order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANS
     nrowa = m;
     if (transa & 1) nrowa = k;
 
-    if ((intptr_t)c & GEMM_ALIGN) info =  6;
+    if ((intptr_t)c & GEMM_PRECOPY_ALIGN) info =  6;
     if (lda < nrowa)    info =  5;
     if (m < 0)          info =  4;
     if (k < 0)          info =  3;

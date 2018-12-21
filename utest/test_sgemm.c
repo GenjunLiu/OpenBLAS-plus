@@ -50,14 +50,14 @@ CTEST(sgemm, sgemm_inc_blasfunc)
 	float *AMeta = (float *)malloc(M*K*sizeof(float)), *BMeta = (float *)malloc(Max_N*K*sizeof(float));
 	float *CMeta_SGEMM = (float*)malloc(M*Max_N*sizeof(float)), *CMeta_PRE = (float*)malloc(M*Max_N*sizeof(float));
 
-	int i, j, k;
+	int i, j, k, s;
 	blasint n;
 	for (i=0; i<M*K; i++) 	   AMeta[i] = (i - M*K/2.0f)/(M*K);
 	for (i=0; i<Max_N*K; i++)  BMeta[i] = (i - Max_N*K/2.0f)/(Max_N*K);
 
 
-	for (i=0; i<4; i++) {
-		char transA = (i&1) ? 'T' : 'N', transB = (i&2) ? 'T' : 'N';
+	for (s=0; s<4; s++) {
+		char transA = (s&1) ? 'T' : 'N', transB = (s&2) ? 'T' : 'N';
 
 		for (n=4; n<=Max_N; n = (blasint)(n*1.5 + 1)) {
 			--n;
@@ -110,13 +110,13 @@ CTEST(sgemm, sgemm_inc_col_major)
 	float *AMeta = (float *)malloc(M*K*sizeof(float)), *BMeta = (float *)malloc(Max_N*K*sizeof(float));
 	float *CMeta_SGEMM = (float*)malloc(M*Max_N*sizeof(float)), *CMeta_PRE = (float*)malloc(M*Max_N*sizeof(float));
 
-	int i, j, k;
+	int i, j, k, s;
 	blasint n;
 	for (i=0; i<M*K; i++) 	   AMeta[i] = (i - M*K/2.0f)/(M*K);
 	for (i=0; i<Max_N*K; i++)  BMeta[i] = (i - Max_N*K/2.0f)/(Max_N*K);
 
-	for (i=0; i<4; i++) {
-		CBLAS_TRANSPOSE transA = (i&1) ? CblasTrans : CblasNoTrans, transB = (i&2) ? CblasTrans : CblasNoTrans;
+	for (s=0; s<4; s++) {
+		CBLAS_TRANSPOSE transA = (s&1) ? CblasTrans : CblasNoTrans, transB = (s&2) ? CblasTrans : CblasNoTrans;
 
 		for (n=4; n<=Max_N; n = (blasint)(n*1.5 + 1)) {
 			--n;
@@ -169,13 +169,13 @@ CTEST(sgemm, sgemm_inc_row_major)
 	float *AMeta = (float *)malloc(M*K*sizeof(float)), *BMeta = (float *)malloc(Max_N*K*sizeof(float));
 	float *CMeta_SGEMM = (float*)malloc(M*Max_N*sizeof(float)), *CMeta_PRE = (float*)malloc(M*Max_N*sizeof(float));
 
-	int i, j, k;
+	int i, j, k, s;
 	blasint n;
 	for (i=0; i<M*K; i++) 	   AMeta[i] = (i - M*K/2.0f)/(M*K);
 	for (i=0; i<Max_N*K; i++)  BMeta[i] = (i - Max_N*K/2.0f)/(Max_N*K);
 
-	for (i=0; i<4; i++) {
-		CBLAS_TRANSPOSE transA = (i&1) ? CblasTrans : CblasNoTrans, transB = (i&2) ? CblasTrans : CblasNoTrans;
+	for (s=0; s<4; s++) {
+		CBLAS_TRANSPOSE transA = (s&1) ? CblasTrans : CblasNoTrans, transB = (s&2) ? CblasTrans : CblasNoTrans;
 
 		for (n=4; n<=Max_N; n = (blasint)(n*1.5 + 1)) {
 			--n;
@@ -230,13 +230,13 @@ CTEST(sgemm, sgemm_inc_precopy_blasfunc)
 	float *CMeta_SGEMM = (float*)malloc(M*Max_N*sizeof(float)), *CMeta_PRE = (float*)malloc(M*Max_N*sizeof(float));
 	float *A_PRECOPY_ALIGN = ALIGN_PTR(A_PRECOPY, align_param, float);
 
-	int i, j, k;
+	int i, j, k, s;
 	blasint n;
 	for (i=0; i<M*K; i++) 	   AMeta[i] = (i - M*K/2.0f)/(M*K);
 	for (i=0; i<Max_N*K; i++)  BMeta[i] = (i - Max_N*K/2.0f)/(Max_N*K);
 
-	for (i=0; i<4; i++) {
-		char transA = (i&1) ? 'T' : 'N', transB = (i&2) ? 'T' : 'N';
+	for (s=0; s<4; s++) {
+		char transA = (s&1) ? 'T' : 'N', transB = (s&2) ? 'T' : 'N';
 
 		blasint lda = transA == 'N' ? M : K;
 		BLASFUNC(sgemm_precopy)(&transA, &transB, (blasint*)&M, (blasint*)&K, AMeta, &lda, A_PRECOPY_ALIGN);
@@ -295,13 +295,13 @@ CTEST(sgemm, sgemm_inc_precopy_col_major)
 	float *CMeta_SGEMM = (float*)malloc(M*Max_N*sizeof(float)), *CMeta_PRE = (float*)malloc(M*Max_N*sizeof(float));
 	float *A_PRECOPY_ALIGN = ALIGN_PTR(A_PRECOPY, align_param, float);
 
-	int i, j, k;
+	int i, j, k, s;
 	blasint n;
 	for (i=0; i<M*K; i++) 	   AMeta[i] = (i - M*K/2.0f)/(M*K);
 	for (i=0; i<Max_N*K; i++)  BMeta[i] = (i - Max_N*K/2.0f)/(Max_N*K);
 
-	for (i=0; i<4; i++) {
-		CBLAS_TRANSPOSE transA = (i&1) ? CblasTrans : CblasNoTrans, transB = (i&2) ? CblasTrans : CblasNoTrans;
+	for (s=0; s<4; s++) {
+		CBLAS_TRANSPOSE transA = (s&1) ? CblasTrans : CblasNoTrans, transB = (s&2) ? CblasTrans : CblasNoTrans;
 
 		blasint lda = transA == CblasNoTrans ? M : K;
 		cblas_sgemm_precopy(CblasColMajor, transA, transB, M, K, AMeta, lda, A_PRECOPY_ALIGN);
@@ -360,13 +360,13 @@ CTEST(sgemm, sgemm_inc_precopy_row_major)
 	float *CMeta_SGEMM = (float*)malloc(Max_M*N*sizeof(float)), *CMeta_PRE = (float*)malloc(Max_M*N*sizeof(float));
 	float *B_PRECOPY_ALIGN = ALIGN_PTR(B_PRECOPY, align_param, float);
 
-	int i, j, k;
+	int i, j, k, s;
 	blasint m;
 	for (i=0; i<Max_M*K; i++) 	AMeta[i] = (i - Max_M*K/2.0f)/(Max_M*K);
 	for (i=0; i<N*K; i++)  		BMeta[i] = (i - N*K/2.0f)/(N*K);
 
-	for (i=0; i<4; i++) {
-		CBLAS_TRANSPOSE transA = (i&1) ? CblasTrans : CblasNoTrans, transB = (i&2) ? CblasTrans : CblasNoTrans;
+	for (s=0; s<4; s++) {
+		CBLAS_TRANSPOSE transA = (s&1) ? CblasTrans : CblasNoTrans, transB = (s&2) ? CblasTrans : CblasNoTrans;
 
 		blasint ldb = transB == CblasNoTrans ? N : K;
 		cblas_sgemm_precopy(CblasRowMajor, transA, transB, N, K, BMeta, ldb, B_PRECOPY_ALIGN);

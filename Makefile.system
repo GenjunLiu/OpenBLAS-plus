@@ -405,7 +405,9 @@ endif
 ifeq ($(ARCH), x86_64)
 
 ifeq ($(CORE), HASWELL)
+ifeq ($(USE_THREAD), 0)
 USE_BLAS_PLUS = 1
+endif
 endif
 
 ifeq ($(CORE), generic)

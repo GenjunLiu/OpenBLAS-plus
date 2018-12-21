@@ -201,7 +201,7 @@ void NAME(char *TRANSA, char *TRANSB,
   info = 0;
 
 #if defined(SPLITSGEMM) && defined(MULTIPY)
-  if ((intptr_t)args.a & GEMM_ALIGN) info = 14;
+  if ((intptr_t)args.a & GEMM_PRECOPY_ALIGN) info = 14;
 #endif
   if (args.ldc < args.m) info = 13;
   if (args.ldb < nrowb)  info = 10;
@@ -326,7 +326,7 @@ void CNAME(enum CBLAS_ORDER order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANS
     info = -1;
 
 #if defined(SPLITSGEMM) && defined(MULTIPY)
-    if ((intptr_t)args.a & GEMM_ALIGN) info = 14;
+    if ((intptr_t)args.a & GEMM_PRECOPY_ALIGN) info = 14;
 #endif
     if (args.ldc < args.m) info = 13;
     if (args.ldb < nrowb)  info = 10;
@@ -378,7 +378,7 @@ void CNAME(enum CBLAS_ORDER order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANS
     info = -1;
 
 #if defined(SPLITSGEMM) && defined(MULTIPY)
-    if ((intptr_t)args.a & GEMM_ALIGN) info = 14;
+    if ((intptr_t)args.a & GEMM_PRECOPY_ALIGN) info = 14;
 #endif
     if (args.ldc < args.m) info = 13;
     if (args.ldb < nrowb)  info = 10;

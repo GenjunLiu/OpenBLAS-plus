@@ -46,13 +46,13 @@
 #ifndef CBLAS
 
 void NAME(blasint *align){
-	if (align) *align = GEMM_ALIGN;
+	if (align) *align = GEMM_PRECOPY_ALIGN;
 }
 
 #else
 
 void CNAME(blasint *align){
-	if (align) *align = GEMM_ALIGN;
+	if (align) *align = GEMM_PRECOPY_ALIGN;
 }
  
 #endif
