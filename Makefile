@@ -34,7 +34,7 @@ endif
 
 LAPACK_NOOPT := $(filter-out -O0 -O1 -O2 -O3 -Ofast,$(LAPACK_FFLAGS))
 
-SUBDIRS_ALL = $(SUBDIRS) test ctest utest exports benchmark ../laswp ../bench
+SUBDIRS_ALL = $(SUBDIRS) test ctest utest exports benchmark ../laswp ../bench cpp_thread_test
 
 .PHONY : all libs netlib $(RELA) test ctest shared install
 .NOTPARALLEL : all libs $(RELA) prof lapack-test install blas-test
@@ -96,7 +96,7 @@ endif
 	@echo
 
 shared :
-ifndef NO_SHARED
+ifneq ($(NO_SHARED), 1)
 ifeq ($(OSNAME), $(filter $(OSNAME),Linux SunOS Android Haiku))
 	@$(MAKE) -C exports so
 	@ln -fs $(LIBSONAME) $(LIBPREFIX).so
@@ -123,15 +123,18 @@ ifeq ($(NOFORTRAN), $(filter 0,$(NOFORTRAN)))
 	touch $(LIBNAME)
 ifndef NO_FBLAS
 	$(MAKE) -C test all
-	$(MAKE) -C utest all
 endif
+	$(MAKE) -C utest all
 ifndef NO_CBLAS
 	$(MAKE) -C ctest all
+ifeq ($(CPP_THREAD_SAFETY_TEST), 1)
+	$(MAKE) -C cpp_thread_test all
+endif
 endif
 endif
 
 libs :
-ifeq ($(CORE), UNKOWN)
+ifeq ($(CORE), UNKNOWN)
 	$(error OpenBLAS: Detecting CPU failed. Please set TARGET explicitly, e.g. make TARGET=your_cpu_target. Please read README for the detail.)
 endif
 ifeq ($(NOFORTRAN), 1)
@@ -251,7 +254,7 @@ ifeq ($(NOFORTRAN), $(filter 0,$(NOFORTRAN)))
 	-@echo "LOADOPTS    = $(FFLAGS) $(EXTRALIB)" >> $(NETLIB_LAPACK_DIR)/make.inc
 	-@echo "CC          = $(CC)" >> $(NETLIB_LAPACK_DIR)/make.inc
 	-@echo "override CFLAGS      = $(LAPACK_CFLAGS)" >> $(NETLIB_LAPACK_DIR)/make.inc
-	-@echo "ARCH        = $(AR)" >> $(NETLIB_LAPACK_DIR)/make.inc
+	-@echo "override ARCH        = $(AR)" >> $(NETLIB_LAPACK_DIR)/make.inc
 	-@echo "ARCHFLAGS   = $(ARFLAGS) -ru" >> $(NETLIB_LAPACK_DIR)/make.inc
 	-@echo "RANLIB      = $(RANLIB)" >> $(NETLIB_LAPACK_DIR)/make.inc
 	-@echo "LAPACKLIB   = ../$(LIBNAME)" >> $(NETLIB_LAPACK_DIR)/make.inc

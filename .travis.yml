@@ -4,11 +4,10 @@ dist: precise
 sudo: true
 language: c
 
-jobs:
+matrix:
   include:
     - &test-ubuntu
       os: linux
-      stage: test
       compiler: gcc
       addons:
         apt:
@@ -25,6 +24,15 @@ jobs:
       env:
         - TARGET_BOX=LINUX64
         - BTYPE="BINARY=64"
+
+    - <<: *test-ubuntu
+      os: linux-ppc64le
+      before_script:
+        - COMMON_FLAGS="DYNAMIC_ARCH=1 TARGET=POWER8 NUM_THREADS=32"
+      env:
+        # for matrix annotation only
+        - TARGET_BOX=PPC64LE_LINUX
+        - BTYPE="BINARY=64 USE_OPENMP=1"
 
     - <<: *test-ubuntu
       env:
@@ -59,7 +67,6 @@ jobs:
         - BTYPE="BINARY=32"
 
     - os: linux
-      stage: test
       compiler: gcc
       addons:
         apt:
@@ -80,13 +87,12 @@ jobs:
     # that don't require sudo.
     - &test-alpine
       os: linux
-      stage: test
       dist: trusty
       sudo: true
       language: minimal
       before_install:
-        - "wget 'https://raw.githubusercontent.com/alpinelinux/alpine-chroot-install/v0.6.0/alpine-chroot-install' \
-              && echo 'a827a4ba3d0817e7c88bae17fe34e50204983d1e  alpine-chroot-install' | sha1sum -c || exit 1"
+        - "wget 'https://raw.githubusercontent.com/alpinelinux/alpine-chroot-install/v0.9.0/alpine-chroot-install' \
+          && echo 'e5dfbbdc0c4b3363b99334510976c86bfa6cb251  alpine-chroot-install' | sha1sum -c || exit 1"
         - alpine() { /alpine/enter-chroot -u "$USER" "$@"; }
       install:
         - sudo sh alpine-chroot-install -p 'build-base gfortran perl linux-headers'
@@ -120,11 +126,10 @@ jobs:
     - <<: *test-alpine
       env:
         - TARGET_BOX=LINUX64_MUSL
-        - BTYPE="BINARY=64 NO_AFFINITY=1 USE_OPENMP=0 NO_LAPACK=0 TARGET=core2"
+        - BTYPE="BINARY=64 NO_AFFINITY=1 USE_OPENMP=0 NO_LAPACK=0 TARGET=CORE2"
 
     - &test-cmake
       os: linux
-      stage: test
       compiler: clang
       addons:
         apt:
@@ -153,8 +158,7 @@ jobs:
 
     - &test-macos
       os: osx
-      stage: test
-      osx_image: xcode8
+      osx_image: xcode10.1
       before_script:
         - COMMON_FLAGS="DYNAMIC_ARCH=1 TARGET=NEHALEM NUM_THREADS=32"
         - brew update
@@ -165,6 +169,7 @@ jobs:
         - BTYPE="BINARY=64 INTERFACE64=1"
 
     - <<: *test-macos
+      osx_image: xcode8.3
       env:
         - BTYPE="BINARY=32"
 

@@ -39,11 +39,35 @@ if (DEFINED BINARY AND DEFINED TARGET AND BINARY EQUAL 32)
   if (${TARGET} STREQUAL "BULLDOZER" OR ${TARGET} STREQUAL "PILEDRIVER" OR ${TARGET} STREQUAL "ZEN")
     set(TARGET "BARCELONA")
   endif ()
+  if (${TARGET} STREQUAL "ARMV8" OR ${TARGET} STREQUAL "CORTEXA57" OR ${TARGET} STREQUAL "CORTEXA53")
+    set(TARGET "ARMV7")
+  endif ()
 endif ()
+
+if (DEFINED TARGET)
+  if (${TARGET} STREQUAL "SKYLAKEX" AND NOT NO_AVX512)
+    set (KERNEL_DEFINITIONS "${KERNEL_DEFINITIONS} -march=skylake-avx512")
+  endif()
+  if (${TARGET} STREQUAL "HASWELL" AND NOT NO_AVX2)
+    if (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
+      execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+      if (${GCC_VERSION} VERSION_GREATER 4.7 OR ${GCC_VERSION} VERSION_EQUAL 4.7)
+        set (KERNEL_DEFINITIONS "${KERNEL_DEFINITIONS} -mavx2")
+      endif()
+    elseif (${CMAKE_C_COMPILER_ID} STREQUAL "CLANG")
+      set (KERNEL_DEFINITIONS "${KERNEL_DEFINITIONS} -mavx2")
+    endif()
+  endif()
+endif()
 
 if (DEFINED TARGET)
   message(STATUS "Targeting the ${TARGET} architecture.")
   set(GETARCH_FLAGS "-DFORCE_${TARGET}")
+endif ()
+
+# On x86_64 build getarch with march=native. This is required to detect AVX512 support in getarch.
+if (X86_64)
+  set(GETARCH_FLAGS "${GETARCH_FLAGS} -march=native")
 endif ()
 
 if (INTERFACE64)
@@ -117,6 +141,10 @@ endif ()
 
 if (USE_THREAD)
   message(STATUS "Multi-threading enabled with ${NUM_THREADS} threads.")
+else()
+  if (${USE_LOCKING})
+    set(CCOMMON_OPT "${CCOMMON_OPT} -DUSE_LOCKING")
+  endif ()
 endif ()
 
 include("${PROJECT_SOURCE_DIR}/cmake/prebuild.cmake")
@@ -166,6 +194,13 @@ if (DYNAMIC_ARCH)
   if (DYNAMIC_OLDER)
     set(CCOMMON_OPT "${CCOMMON_OPT} -DDYNAMIC_OLDER")
   endif ()
+endif ()
+
+if (DYNAMIC_LIST)
+  set(CCOMMON_OPT "${CCOMMON_OPT} -DDYNAMIC_LIST")
+  foreach(DCORE ${DYNAMIC_LIST})
+    set(CCOMMON_OPT "${CCOMMON_OPT} -DDYN_${DCORE}")
+  endforeach ()
 endif ()
 
 if (NO_LAPACK)
@@ -257,7 +292,7 @@ endif ()
 
 set(KERNELDIR	"${PROJECT_SOURCE_DIR}/kernel/${ARCH}")
 
-# TODO: nead to convert these Makefiles
+# TODO: need to convert these Makefiles
 # include ${PROJECT_SOURCE_DIR}/cmake/${ARCH}.cmake
 
 if (${CORE} STREQUAL "PPC440")
@@ -303,6 +338,8 @@ endif ()
 if (MIXED_MEMORY_ALLOCATION)
   set(CCOMMON_OPT "${CCOMMON_OPT} -DMIXED_MEMORY_ALLOCATION")
 endif ()
+
+set(CCOMMON_OPT "${CCOMMON_OPT} -DVERSION=\"\\\"${OpenBLAS_VERSION}\\\"\"")
 
 set(REVISION "-r${OpenBLAS_VERSION}")
 set(MAJOR_VERSION ${OpenBLAS_MAJOR_VERSION})

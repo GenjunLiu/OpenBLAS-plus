@@ -13,6 +13,7 @@ OBJS=utest_main.o test_amax.o test_rotmg.o test_axpy.o test_dotu.o test_dsdot.o 
 
 ifneq ($(NO_LAPACK), 1)
 OBJS += test_potrs.o
+OBJS += test_kernel_regress.o
 endif
 
 ifeq ($(USE_BLAS_PLUS), 1)
@@ -41,4 +42,3 @@ clean:
 	-rm -f *.o $(UTESTBIN)
 
 libs:
-

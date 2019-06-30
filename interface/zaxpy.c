@@ -82,6 +82,12 @@ void CNAME(blasint n, FLOAT *ALPHA, FLOAT *x, blasint incx, FLOAT *y, blasint in
 
   if ((alpha_r == ZERO) && (alpha_i == ZERO)) return;
 
+  if (incx == 0 && incy == 0) {
+  *y += n * (alpha_r * (*x) - alpha_i* (*(x+1)) );
+  *(y+1) += n * (alpha_i * (*x) + alpha_r * (*(x +1)) );
+  return;
+  }
+  
   IDEBUG_START;
 
   FUNCTION_PROFILE_START();
@@ -93,7 +99,7 @@ void CNAME(blasint n, FLOAT *ALPHA, FLOAT *x, blasint incx, FLOAT *y, blasint in
   //disable multi-thread when incx==0 or incy==0
   //In that case, the threads would be dependent.
   //
-  //Temporarily work-around the low performance issue with small imput size &
+  //Temporarily work-around the low performance issue with small input size &
   //multithreads.
   if (incx == 0 || incy == 0 || n <= MULTI_THREAD_MINIMAL)
 	  nthreads = 1;

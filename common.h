@@ -85,6 +85,8 @@ extern "C" {
 
 #if !defined(_MSC_VER)
 #include <unistd.h>
+#elif _MSC_VER < 1900
+#define snprintf _snprintf
 #endif
 #include <time.h>
 
@@ -129,7 +131,7 @@ extern "C" {
 #include <time.h>
 #include <unistd.h>
 #include <math.h>
-#ifdef SMP
+#if defined(SMP) || defined(USE_LOCKING)
 #include <pthread.h>
 #endif
 #endif
@@ -183,7 +185,7 @@ extern "C" {
 
 #define ALLOCA_ALIGN 63UL
 
-#define NUM_BUFFERS (MAX_CPU_NUMBER * 2 * MAX_PARALLEL_NUMBER)
+#define NUM_BUFFERS MAX(50,(MAX_CPU_NUMBER * 2 * MAX_PARALLEL_NUMBER))
 
 #ifdef NEEDBUNDERSCORE
 #define BLASFUNC(FUNC) FUNC##_
@@ -198,7 +200,7 @@ extern "C" {
 #error "You can't specify both LOCK operation!"
 #endif
 
-#ifdef SMP
+#if defined(SMP) || defined(USE_LOCKING)
 #define USE_PTHREAD_LOCK
 #undef	USE_PTHREAD_SPINLOCK
 #endif
@@ -353,6 +355,11 @@ typedef int blasint;
 #endif
 #endif
 
+#ifdef POWER9
+#ifndef YIELDING
+#define YIELDING        __asm__ __volatile__ ("nop;nop;nop;nop;nop;nop;nop;nop;\n");
+#endif
+#endif
 
 /*
 #ifdef PILEDRIVER
@@ -444,7 +451,7 @@ please https://github.com/xianyi/OpenBLAS/issues/246
 typedef char env_var_t[MAX_PATH];
 #define readenv(p, n) 0
 #else
-#ifdef OS_WINDOWS
+#if defined(OS_WINDOWS) && !defined(OS_CYGWIN_NT)
 typedef char env_var_t[MAX_PATH];
 #define readenv(p, n) GetEnvironmentVariable((LPCTSTR)(n), (LPTSTR)(p), sizeof(p))
 #else
