@@ -214,6 +214,8 @@ CTEST(dgemm, dgemm_inc_row_major)
 	if (CMeta_PRE) free(CMeta_PRE), CMeta_PRE = NULL;
 }
 
+// conflict with precopy
+#ifndef SMP_SERVER
 /*
 	CblasColMajor
 	A: K x M
@@ -408,3 +410,5 @@ CTEST(dgemm, dgemm_inc_precopy_row_major)
 	if (CMeta_SGEMM) free(CMeta_SGEMM), CMeta_SGEMM = NULL;
 	if (CMeta_PRE) free(CMeta_PRE), CMeta_PRE = NULL;
 }
+#endif  // SMP_SERVER
+
