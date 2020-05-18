@@ -6,7 +6,7 @@ make clean
 export LDFLAGS="-L${NDKROOT}/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64/lib/gcc/aarch64-linux-android/4.9.x -lm"
 
 # Set the clang cross compile flags
-export CLANG_FLAGS="-target aarch64-linux-android -D__ANDROID_API__=23 \
+export CLANG_FLAGS="-target aarch64-linux-android -D__ANDROID_API__=21 \
   --sysroot=$NDKROOT/platforms/android-23/arch-arm64 -isystem $SYSROOT/usr/include/aarch64-linux-android \
   -isystem $SYSROOT/usr/include -ffunction-sections -fdata-sections \
   -isystem $NDKROOT/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem $NDKROOT/sources/cxx-stl/gnu-libstdc++/4.9/libs/arm64-v8a/include/ -isystem $NDKROOT/sources/cxx-stl/gnu-libstdc++/4.9/include/backward \
